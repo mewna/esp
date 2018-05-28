@@ -3,7 +3,6 @@ defmodule ESP.Key do
   require Logger
 
   @key_store          "esp-key-store"
-  @reverse_key_store  "esp-reverse-key-store"
   @token_store        "esp-token-store"
   @user_store         "esp-user-store"
   @guild_store        "esp-guild-store"
@@ -19,6 +18,12 @@ defmodule ESP.Key do
   # KEYS #
   ########
 
+  defp keygen(id) when is_binary(id) do
+    encoded_id = id |> Base.encode16
+    hmac = :crypto.hmac(:sha512, System.get_env("SIGNING_KEY"), id) |> Base.encode16
+    "esp." <> encoded_id <> "." <> hmac
+  end
+
   def get_key(id) when is_binary(id) do
     {:ok, key} = Redis.q ["HGET", @key_store, id]
     case key do
@@ -28,35 +33,34 @@ defmodule ESP.Key do
   end
 
   def set_key(id) when is_binary(id) do
-    uuid = UUID.uuid4()
-    Redis.q ["HSET", @key_store, id, uuid]
-    Redis.q ["HSET", @reverse_key_store, uuid, id]
-    uuid
-  end
-
-  def reverse_key_lookup(key) when is_binary(key) do
-    {:ok, id} = Redis.q ["HGET", @reverse_key_store, key]
-    case id do
-      :undefined -> nil
-      _ -> id
-    end
+    key = keygen id
+    Redis.q ["HSET", @key_store, id, key]
+    key
   end
 
   def clear_auth_by_key(nil) do
     # NOOP
   end
-
   def clear_auth_by_key(key) when is_binary(key) do
-    id = reverse_key_lookup key
-    Redis.q ["HDEL", @reverse_key_store, key]
-    unless is_nil id do
-      Redis.q ["HDEL", @key_store, id]
+    Redis.q ["HDEL", @key_store, key]
+  end
+
+  def parse_key(key) do
+    if key == "null" do
+      # We just pass the token directly from whatever's in the auth. header, so
+      # the client may actually send "null" and nothing else
+      {false, nil}
+    else
+      [esp, id, hmac] = key |> String.split("\.", parts: 3)
+      {_, id} = Base.decode16(id)
+      valid = Base.encode16(:crypto.hmac(:sha512, System.get_env("SIGNING_KEY"), id)) == hmac
+      {valid, id}
     end
   end
 
-  ##########
-  # TOKENS #
-  ##########
+  ################
+  # OAUTH TOKENS #
+  ################
 
   def set_token(id, data) when is_binary(id) do
     Redis.q ["HSET", @token_store, id, Poison.encode!(data)]
@@ -104,6 +108,7 @@ defmodule ESP.Key do
     case HTTPoison.get(@user_url, [{"Authorization", "Bearer #{token.token}"}]) do
       {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
         user_data = Poison.decode! body
+        set_user id, user_data
         {:ok, %{"user" => user_data}}
       {:ok, %HTTPoison.Response{status_code: 429, body: body}} ->
         res = Poison.decode! body
@@ -113,9 +118,10 @@ defmodule ESP.Key do
 
         user_res = HTTPoison.get! @user_url, [{"Authorization", "Bearer #{token.token}"}]
         user_data = Poison.decode! user_res.body
+        set_user id, user_data
         {:ok, %{"user" => user_data}}
       _ ->
-       {:error, :invalid_token} 
+       {:error, :invalid_token}
     end
   end
 
@@ -123,6 +129,7 @@ defmodule ESP.Key do
         case HTTPoison.get(@guilds_url, [{"Authorization", "Bearer #{token.token}"}]) do
       {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
         guild_data = Poison.decode! body
+        set_guilds id, guild_data
         {:ok, %{"guilds" => guild_data}}
       {:ok, %HTTPoison.Response{status_code: 429, body: body}} ->
         res = Poison.decode! body
@@ -132,9 +139,10 @@ defmodule ESP.Key do
 
         guild_res = HTTPoison.get! @guilds_url, [{"Authorization", "Bearer #{token.token}"}]
         guild_data = Poison.decode! guild_res.body
+        set_guilds id, guild_data
         {:ok, %{"guilds" => guild_data}}
       _ ->
-       {:error, :invalid_token} 
+       {:error, :invalid_token}
     end
   end
 

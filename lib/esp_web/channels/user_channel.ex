@@ -29,7 +29,7 @@ defmodule ESPWeb.UserChannel do
   end
 
   def join("esp:cache:user:" <> id, _message, socket) do
-    {:ok, socket}
+    {:ok, assign(socket, :id, id)}
   end
 
   def join("esp:dashboard:" <> id, _message, socket) do

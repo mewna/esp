@@ -48,9 +48,7 @@ defmodule ESPWeb.AuthController do
       "user" => user,
       "key" => ESP.Key.get_key(user["id"])
     }
-    base_url = System.get_env("BASE_URL") 
-               |> String.replace("http://", "")
-               |> String.replace("https://", "")
+
     conn
     |> fetch_session
     |> delete_session("user")
