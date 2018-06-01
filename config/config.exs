@@ -20,7 +20,7 @@ config :logger, :console,
 
 config :ueberauth, Ueberauth,
   providers: [
-    discord: {Ueberauth.Strategy.Discord, [default_scope: "identify guilds email"]}
+    discord: {Ueberauth.Strategy.Discord, [default_scope: "identify guilds email connections"]}
   ]
 
 config :ueberauth, Ueberauth.Strategy.Discord.OAuth,

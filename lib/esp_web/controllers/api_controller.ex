@@ -74,8 +74,7 @@ defmodule ESPWeb.ApiController do
     {state, response} = key_owns_guild key, guild
     case state do
       :ok ->
-        Logger.warn "Posting data: #{inspect data, pretty: true}"
-        response = HTTPoison.post!(System.get_env("INTERNAL_API") <> "/data/guild/#{guild}/config/#{type}", data).body
+        response = HTTPoison.post!(System.get_env("INTERNAL_API") <> "/data/guild/#{guild}/config/#{type}", Poison.encode!(data)).body
         conn |> json(response)
       :error ->
         conn |> json(%{"error" => response})
