@@ -81,6 +81,12 @@ defmodule ESPWeb.ApiController do
     end
   end
 
+  def player_fetch(conn, params) do
+    id = params["id"]
+    res = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/data/player/#{id}").body
+    conn |> json(res)
+  end
+
   # Heartbeat
 
   def heartbeat(conn, _params) do
@@ -102,6 +108,11 @@ defmodule ESPWeb.ApiController do
 
   def get_commands(conn, _params) do
     data = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/data/commands/metadata").body |> Poison.decode!
+    conn |> json(data)
+  end
+
+  def backgrounds_packs(conn, _params) do
+    data = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/data/backgrounds/packs").body |> Poison.decode!
     conn |> json(data)
   end
 

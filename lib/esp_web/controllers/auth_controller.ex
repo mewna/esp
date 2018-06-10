@@ -35,7 +35,7 @@ defmodule ESPWeb.AuthController do
     ESP.Key.set_guilds id, raw_guilds
     ESP.Key.set_key id
 
-    conn 
+    conn
     |> fetch_session
     |> put_session("user", raw_user)
     |> redirect(to: "/auth/finish_login")
@@ -63,10 +63,10 @@ defmodule ESPWeb.AuthController do
   end
 
   def fail_login(conn, _params) do
-    html conn, 
+    html conn,
     """
     <pre>
-    Couldn't log you in. Please close this window and try again.  
+    Couldn't log you in. Please close this window and try again.
     </pre>
     """
   end

@@ -19,12 +19,19 @@ defmodule ESPWeb.Router do
     scope "/metadata" do
       get "/plugins", ApiController, :get_plugins
       get "/commands",  ApiController, :get_commands
+
+      scope "/backgrounds" do
+        get "/packs", ApiController, :backgrounds_packs
+      end
     end
 
     scope "/data" do
       scope "/guild" do
         post "/:id/:type",  ApiController, :config_guild_update
         get  "/:id/:type",  ApiController, :config_guild_fetch
+      end
+      scope "/player" do
+        get "/:id", ApiController, :player_fetch
       end
     end
 
