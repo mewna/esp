@@ -31,7 +31,8 @@ defmodule ESPWeb.Router do
         get  "/:id/:type",  ApiController, :config_guild_fetch
       end
       scope "/player" do
-        get "/:id", ApiController, :player_fetch
+        get  "/:id", ApiController, :player_fetch
+        post "/:id", ApiController, :player_update
       end
     end
 

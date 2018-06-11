@@ -87,6 +87,15 @@ defmodule ESPWeb.ApiController do
     conn |> json(res)
   end
 
+  def player_update(conn, params) do
+    data = Map.merge %{}, params
+    {id, data} = Map.pop data, "id"
+    {_, data}  = Map.pop data, "type"
+
+    res = HTTPoison.post!(System.get_env("INTERNAL_API") <> "/data/player/#{id}", Poison.encode!(data)).body
+    conn |> json(res)
+  end
+
   # Heartbeat
 
   def heartbeat(conn, _params) do
