@@ -125,6 +125,16 @@ defmodule ESPWeb.ApiController do
     conn |> json(data)
   end
 
+  # Telepathy
+
+  def get_twitch_user_by_name(conn, params) do
+    # Because ratelimits(tm), this lookup may take a while
+    data = HTTPoison.get!(System.get_env("TELEPATHY_URL") <> "/api/v1/twitch/lookup/" <> params["name"],
+              [], [timeout: 120_000, recv_timeout: 120_000]).body
+            |> Poison.decode!
+    conn |> json(data)
+  end
+
   # Fucking CORS man
 
   def options(conn, _params) do
