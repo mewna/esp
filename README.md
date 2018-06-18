@@ -3,7 +3,7 @@
 ## Token
 
 ```
-esp.(userid |> base64).(hmac |> base64)
+esp.(userid |> base16).(current time ms |> base16).((userid <> time) |> hmac |> base16)
 ```
 
 ## TODO

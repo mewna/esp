@@ -20,8 +20,10 @@ defmodule ESP.Key do
 
   defp keygen(id) when is_binary(id) do
     encoded_id = id |> Base.encode16
-    hmac = :crypto.hmac(:sha512, System.get_env("SIGNING_KEY"), id) |> Base.encode16
-    "esp." <> encoded_id <> "." <> hmac
+    time =:os.system_time(:millisecond) |> Integer.to_string()
+    encoded_time = time |> Base.encode16
+    hmac = :crypto.hmac(:sha512, System.get_env("SIGNING_KEY"), id <> ":" <> time) |> Base.encode16
+    "esp." <> encoded_id <> "." <> encoded_time <> "." <> hmac
   end
 
   def get_key(id) when is_binary(id) do
@@ -51,9 +53,10 @@ defmodule ESP.Key do
       # the client may actually send "null" and nothing else
       {false, nil}
     else
-      [esp, id, hmac] = key |> String.split("\.", parts: 3)
+      [_esp, id, time, hmac] = key |> String.split("\.", parts: 4)
       {_, id} = Base.decode16(id)
-      valid = Base.encode16(:crypto.hmac(:sha512, System.get_env("SIGNING_KEY"), id)) == hmac
+      {_, time} = Base.decode16(time)
+      valid = Base.encode16(:crypto.hmac(:sha512, System.get_env("SIGNING_KEY"), id <> ":" <> time)) == hmac
       {valid, id}
     end
   end
@@ -96,9 +99,12 @@ defmodule ESP.Key do
     token = get_token id
     unless is_nil token do
       # TODO: Check expiry
-      {_, user} = get_user_from_api id, token
+      {status, user} = get_user_from_api id, token
       {_, guilds} = get_guilds_from_api id, token
-      {:ok, %{"user" => user["user"], "guilds" => guilds["guilds"]}}
+      case status do
+        :ok -> {:ok, %{"user" => user["user"], "guilds" => guilds["guilds"]}}
+        :error -> {:error, :invalid_token}
+      end
     else
       {:error, :no_token}
     end
@@ -120,8 +126,9 @@ defmodule ESP.Key do
         user_data = Poison.decode! user_res.body
         set_user id, user_data
         {:ok, %{"user" => user_data}}
-      _ ->
-       {:error, :invalid_token}
+      {status, data} ->
+        Logger.warn "Got response: {#{inspect status, pretty: true}, #{inspect data, pretty: true}}"
+        {:error, :invalid_token}
     end
   end
 

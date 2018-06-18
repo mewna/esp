@@ -28,8 +28,9 @@ defmodule ESPWeb.Router do
 
       scope "/data" do
         scope "/guild" do
-          post "/:id/:type",  ApiController, :config_guild_update
-          get  "/:id/:type",  ApiController, :config_guild_fetch
+          get  "/:id/webhooks", ApiController, :webhooks_fetch
+          post "/:id/:type",    ApiController, :config_guild_update
+          get  "/:id/:type",    ApiController, :config_guild_fetch
         end
         scope "/player" do
           get  "/:id", ApiController, :player_fetch
@@ -37,6 +38,17 @@ defmodule ESPWeb.Router do
         end
         scope "/twitch" do
           get "/lookup/name/:name", ApiController, :get_twitch_user_by_name
+          get "/lookup/id/:id",     ApiController, :get_twitch_user_by_id
+        end
+      end
+
+      scope "/connect" do
+        scope "/discord" do
+          scope "/webhooks" do
+            get "/check",  ConnectionsController, :discord_webhook_check
+            get "/start",  ConnectionsController, :discord_webhook_start
+            get "/finish", ConnectionsController, :discord_webhook_finish
+          end
         end
       end
 

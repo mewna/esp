@@ -81,6 +81,20 @@ defmodule ESPWeb.ApiController do
     end
   end
 
+  def webhooks_fetch(conn, params) do
+    guild = params["id"]
+    data = Map.merge(%{}, params)
+    key = conn |> get_req_header("authorization") |> hd
+    {state, response} = key_owns_guild key, guild
+    case state do
+      :ok ->
+        response = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/data/guild/#{guild}/webhooks").body
+        conn |> json(response)
+      :error ->
+        conn |> json(%{"error" => response})
+    end
+  end
+
   def player_fetch(conn, params) do
     id = params["id"]
     res = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/data/player/#{id}").body
@@ -88,12 +102,19 @@ defmodule ESPWeb.ApiController do
   end
 
   def player_update(conn, params) do
-    data = Map.merge %{}, params
-    {id, data} = Map.pop data, "id"
-    {_, data}  = Map.pop data, "type"
+    key = conn |> get_req_header("authorization") |> hd
+    {valid, id} = ESP.Key.parse_key key
 
-    res = HTTPoison.post!(System.get_env("INTERNAL_API") <> "/data/player/#{id}", Poison.encode!(data)).body
-    conn |> json(res)
+    if valid do
+      data = Map.merge %{}, params
+      {id, data} = Map.pop data, "id"
+      {_, data}  = Map.pop data, "type"
+
+      res = HTTPoison.post!(System.get_env("INTERNAL_API") <> "/data/player/#{id}", Poison.encode!(data)).body
+      conn |> json(res)
+    else
+      conn |> json(%{})
+    end
   end
 
   # Heartbeat
@@ -129,7 +150,15 @@ defmodule ESPWeb.ApiController do
 
   def get_twitch_user_by_name(conn, params) do
     # Because ratelimits(tm), this lookup may take a while
-    data = HTTPoison.get!(System.get_env("TELEPATHY_URL") <> "/api/v1/twitch/lookup/" <> params["name"],
+    data = HTTPoison.get!(System.get_env("TELEPATHY_URL") <> "/api/v1/twitch/lookup/name/" <> params["name"],
+              [], [timeout: 120_000, recv_timeout: 120_000]).body
+            |> Poison.decode!
+    conn |> json(data)
+  end
+
+  def get_twitch_user_by_id(conn, params) do
+    # Because ratelimits(tm), this lookup may take a while
+    data = HTTPoison.get!(System.get_env("TELEPATHY_URL") <> "/api/v1/twitch/lookup/id/" <> params["id"],
               [], [timeout: 120_000, recv_timeout: 120_000]).body
             |> Poison.decode!
     conn |> json(data)
