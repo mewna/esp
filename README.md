@@ -3,7 +3,7 @@
 ## Token
 
 ```
-esp.(userid |> base16).(current time ms |> base16).((userid <> time) |> hmac |> base16)
+esp.(userid |> base16).(current time ms |> base16).(session id |> base16).((userid <> ":" <> time <> ":" <> session id) |> hmac |> base16)
 ```
 
 ## TODO
@@ -22,7 +22,7 @@ esp.(userid |> base16).(current time ms |> base16).((userid <> time) |> hmac |> 
     "visibility" => 1
   }
 ]
-    # user
+# user
 %{
   "avatar" => "a_e9aac0d60feb0323ece1c56fba3f1a5f",
   "discriminator" => "0001",

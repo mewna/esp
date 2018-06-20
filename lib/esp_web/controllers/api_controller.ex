@@ -83,7 +83,6 @@ defmodule ESPWeb.ApiController do
 
   def webhooks_fetch(conn, params) do
     guild = params["id"]
-    data = Map.merge(%{}, params)
     key = conn |> get_req_header("authorization") |> hd
     {state, response} = key_owns_guild key, guild
     case state do
@@ -103,7 +102,7 @@ defmodule ESPWeb.ApiController do
 
   def player_update(conn, params) do
     key = conn |> get_req_header("authorization") |> hd
-    {valid, id} = ESP.Key.parse_key key
+    {valid, id} = ESP.Key.check_key_valid key
 
     if valid do
       data = Map.merge %{}, params
@@ -121,7 +120,7 @@ defmodule ESPWeb.ApiController do
 
   def heartbeat(conn, _params) do
     key = conn |> get_req_header("authorization") |> hd
-    {valid, id} = ESP.Key.parse_key key
+    {valid, id} = ESP.Key.check_key_valid key
     if valid do
       conn |> json(%{"check" => id})
     else

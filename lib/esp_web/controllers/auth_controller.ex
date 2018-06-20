@@ -33,7 +33,6 @@ defmodule ESPWeb.AuthController do
     ESP.Key.set_token id, auth.credentials
     ESP.Key.set_user id, raw_user
     ESP.Key.set_guilds id, raw_guilds
-    ESP.Key.set_key id
 
     conn
     |> fetch_session
@@ -46,7 +45,7 @@ defmodule ESPWeb.AuthController do
     data = %{
       "type" => "login",
       "user" => user,
-      "key" => ESP.Key.get_key(user["id"])
+      "key" => ESP.Key.get_new_key(user["id"])
     }
 
     conn

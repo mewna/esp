@@ -2,11 +2,12 @@
 defmodule ESP.Key do
   alias Lace.Redis
   require Logger
+  use EntropyString, charset: :charset64, risk: 1.0e12
 
-  @key_store          "esp-key-store"
-  @token_store        "esp-token-store"
-  @user_store         "esp-user-store"
-  @guild_store        "esp-guild-store"
+  @key_store          "esp:store:keys"
+  @user_store         "esp:store:users"
+  @token_store        "esp:store:discord:tokens"
+  @guild_store        "esp:store:discord:guilds"
 
   @base_url   "https://discordapp.com/api"
   @oauth_url  @base_url <> "/oauth2"
@@ -21,24 +22,24 @@ defmodule ESP.Key do
 
   defp keygen(id) when is_binary(id) do
     encoded_id = id |> Base.encode16
-    time =:os.system_time(:millisecond) |> Integer.to_string()
+
+    time = :os.system_time(:millisecond) |> Integer.to_string
     encoded_time = time |> Base.encode16
+
+    session_id = ESP.Key.random()
+    encoded_session_id = session_id |> Base.encode16
+
     # what is security :S
-    hmac = :crypto.hmac(:sha512, System.get_env("SIGNING_KEY"), id <> ":" <> time) |> Base.encode16
-    "esp." <> encoded_id <> "." <> encoded_time <> "." <> hmac
+    hmac = :crypto.hmac(:sha512, System.get_env("SIGNING_KEY"), "#{id}:#{time}:#{session_id}") |> Base.encode16
+    # Why am I not just encoding JSON here?
+    # Yeah idk either :V
+    "esp." <> encoded_id <> "." <> encoded_time <> "." <> encoded_session_id <> "." <> hmac
   end
 
-  def get_key(id) when is_binary(id) do
-    {:ok, key} = Redis.q ["HGET", @key_store, id]
-    case key do
-      :undefined -> set_key id
-      _ -> key
-    end
-  end
-
-  def set_key(id) when is_binary(id) do
+  def get_new_key(id) when is_binary(id) do
     key = keygen id
-    Redis.q ["HSET", @key_store, id, key]
+    session_id = get_session_id key
+    Redis.q ["HSET", @key_store <> ":" <> id, session_id, key]
     key
   end
 
@@ -46,19 +47,36 @@ defmodule ESP.Key do
     # NOOP
   end
   def clear_auth_by_key(key) when is_binary(key) do
-    Redis.q ["HDEL", @key_store, key]
+    [id, time, session_id, hmac] = parse_key key
+    Redis.q ["HDEL", @key_store <> ":" <> id, session_id]
   end
 
-  def parse_key(key) do
+  def parse_key(key) when is_binary(key) do
+    [_esp, id, time, session_id, hmac] = key |> String.split("\.", parts: 5)
+    [id, time, session_id, hmac]
+  end
+
+  def get_session_id(key) when is_binary(key) do
+    [_, _, session_id, _] = parse_key key
+    session_id |> Base.decode16!
+  end
+
+  def check_key_valid(key) when is_binary(key) do
     if key == "null" do
       # We just pass the token directly from whatever's in the auth. header, so
       # the client may actually send "null" and nothing else
       {false, nil}
     else
-      [_esp, id, time, hmac] = key |> String.split("\.", parts: 4)
-      {_, id} = Base.decode16(id)
-      {_, time} = Base.decode16(time)
-      valid = Base.encode16(:crypto.hmac(:sha512, System.get_env("SIGNING_KEY"), id <> ":" <> time)) == hmac
+      [id, time, session_id, hmac] = parse_key key
+      {_, id} = Base.decode16 id
+      {_, time} = Base.decode16 time
+      {_, session_id} = Base.decode16 session_id
+
+      calculated_hmac = :crypto.hmac(:sha512, System.get_env("SIGNING_KEY"), "#{id}:#{time}:#{session_id}") |> Base.encode16
+      # We don't use == here (or a simple byte-by-byte equality check) to avoid timing attacks - we
+      # want this to be constant time. I don't remember how == is implemented in Erlang / Elixir,
+      # so this is just for my sanity.
+      valid = SecureCompare.compare calculated_hmac, hmac
       {valid, id}
     end
   end

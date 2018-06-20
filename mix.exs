@@ -49,6 +49,9 @@ defmodule ESP.Mixfile do
 
       # CORS
       {:cors_plug, "~> 1.5"},
+
+      {:secure_compare, "~> 0.1.0"},
+      {:entropy_string, "~> 1.3"}, # Better(!) than using UUIDv4
     ]
   end
 end

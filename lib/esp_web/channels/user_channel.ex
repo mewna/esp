@@ -14,7 +14,10 @@ defmodule ESPWeb.UserChannel do
     unless is_nil auth_message do
       if Map.has_key?(auth_message, "key") do
         # verify key
-        if auth_message["key"] == ESP.Key.get_key(user_id) do
+        # TODO: Should use new key verification methods
+        key = auth_message["key"]
+        {valid, _} = ESP.Key.check_key_valid key
+        if valid do
           send self(), :after_join_user
           {:ok, assign(socket, :key, auth_message["key"])}
         else
@@ -48,7 +51,7 @@ defmodule ESPWeb.UserChannel do
   end
 
   def handle_info(:after_join_dashboard, socket) do
-    {state, data} = socket.assigns.id |> ESP.Key.refresh_data 
+    {state, data} = socket.assigns.id |> ESP.Key.refresh_data
     push_message socket, "DATA", %{"state" => state, "data" => data}
     {:noreply, socket}
   end
