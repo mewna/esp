@@ -1,3 +1,4 @@
+# TODO: This does not allow for multiple sessions at once - fix!
 defmodule ESP.Key do
   alias Lace.Redis
   require Logger
@@ -22,6 +23,7 @@ defmodule ESP.Key do
     encoded_id = id |> Base.encode16
     time =:os.system_time(:millisecond) |> Integer.to_string()
     encoded_time = time |> Base.encode16
+    # what is security :S
     hmac = :crypto.hmac(:sha512, System.get_env("SIGNING_KEY"), id <> ":" <> time) |> Base.encode16
     "esp." <> encoded_id <> "." <> encoded_time <> "." <> hmac
   end
