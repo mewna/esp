@@ -47,8 +47,10 @@ defmodule ESP.Key do
     # NOOP
   end
   def clear_auth_by_key(key) when is_binary(key) do
-    [id, time, session_id, hmac] = parse_key key
-    Redis.q ["HDEL", @key_store <> ":" <> id, session_id]
+    session_id = get_session_id key
+    user_id = get_user_id key
+    Logger.info "Clearing #{user_id} session key #{session_id}"
+    Redis.q ["HDEL", @key_store <> ":" <> user_id, session_id]
   end
 
   def parse_key(key) when is_binary(key) do
@@ -59,6 +61,10 @@ defmodule ESP.Key do
   def get_session_id(key) when is_binary(key) do
     [_, _, session_id, _] = parse_key key
     session_id |> Base.decode16!
+  end
+  def get_user_id(key) when is_binary(key) do
+    [id, _, _, _] = parse_key key
+    id |> Base.decode16!
   end
 
   def check_key_valid(key) when is_binary(key) do

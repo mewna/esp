@@ -56,7 +56,7 @@ defmodule ESPWeb.Router do
         post "/logout", ApiController, :logout
       end
 
-      get     "/heartbeat", ApiController, :heartbeat
+      get "/heartbeat", ApiController, :heartbeat
     end
     # tfw CORS is being rude
     # It didn't wanna work without this for some reason tho so bleh
