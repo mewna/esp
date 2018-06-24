@@ -42,9 +42,11 @@ defmodule ESPWeb.AuthController do
 
   def finish_login(conn, _params) do
     user = conn |> fetch_session |> get_session("user")
+    # TODO: Don't pass back `email` here
+    {_, user_actual} = Map.pop user, "email"
     data = %{
       "type" => "login",
-      "user" => user,
+      "user" => user_actual,
       "key" => ESP.Key.get_new_key(user["id"])
     }
 

@@ -29,8 +29,9 @@ defmodule ESPWeb.Router do
       scope "/data" do
         scope "/guild" do
           get  "/:id/webhooks", ApiController, :webhooks_fetch
-          post "/:id/:type",    ApiController, :config_guild_update
-          get  "/:id/:type",    ApiController, :config_guild_fetch
+          get  "/:id/levels",   ApiController, :guild_levels_fetch
+          post "/:id/config/:type",    ApiController, :config_guild_update
+          get  "/:id/config/:type",    ApiController, :config_guild_fetch
         end
         scope "/player" do
           get  "/:id", ApiController, :player_fetch
@@ -58,11 +59,12 @@ defmodule ESPWeb.Router do
 
       get "/heartbeat", ApiController, :heartbeat
     end
+
     # tfw CORS is being rude
     # It didn't wanna work without this for some reason tho so bleh
     # Passing an "Authorization" header was triggering a CORS Preflight check
     # This deals with that by giving the right whatevers
-    options "/*path",     ApiController, :options
+    options "/*path", ApiController, :options
   end
 
   scope "/auth", ESPWeb do

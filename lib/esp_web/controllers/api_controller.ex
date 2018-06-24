@@ -32,7 +32,7 @@ defmodule ESPWeb.ApiController do
   # Config
 
   defp key_owns_guild(key, guild_id) do
-    {valid, id} = ESP.Key.parse_key key
+    {valid, id} = ESP.Key.check_key_valid key
     if valid do
       # Get the user
       #user = ESP.Key.get_user id
@@ -93,6 +93,17 @@ defmodule ESPWeb.ApiController do
         conn |> json(%{"error" => response})
     end
   end
+
+  # Other guild data
+
+  def guild_levels_fetch(conn, params) do
+    data = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/data/guild/#{params["id"]}/levels").body
+    # doing |> json(data) json-encodes a json string giving wrong results
+    # idk why this one is special but others aren't :I
+    conn |> text(data)
+  end
+
+  # Players
 
   def player_fetch(conn, params) do
     id = params["id"]

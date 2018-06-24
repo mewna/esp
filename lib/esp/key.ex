@@ -68,6 +68,7 @@ defmodule ESP.Key do
   end
 
   def check_key_valid(key) when is_binary(key) do
+    # TODO: Really there should just be a regex match or something to ensure that the token's formatting is valid...
     if key == "null" do
       # We just pass the token directly from whatever's in the auth. header, so
       # the client may actually send "null" and nothing else
