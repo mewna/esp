@@ -40,9 +40,42 @@ defmodule ESPWeb.AuthController do
     |> redirect(to: "/auth/finish_login")
   end
 
+  defp get_avatar_cdn_url(user) when is_map(user) do
+    if Map.has_key?(user, "avatar") do
+      avatar = user["avatar"]
+      ext = case avatar do
+              "a_" <> _ -> "gif"
+              _ -> "png"
+            end
+      "https://cdn.discordapp.com/avatars/#{user["id"]}/#{avatar}.#{ext}"
+    else
+      avatar = user["discriminator"] |> String.to_integer
+      avatar = rem avatar, 5
+      "https://cdn.discordapp.com/avatars/#{avatar}.png"
+    end
+  end
+
+  defp update_account(user) when is_map(user) do
+    account = %{
+      "username" => "",
+      "displayName" => user["username"],
+      "email" => user["email"],
+      "discordAccountId" => user["id"],
+      "avatar" => get_avatar_cdn_url(user),
+    }
+    account_id = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/data/account/links/discord/" <> user["id"]).body
+    account = unless is_nil(account_id) or account_id == "null" do
+                Map.put account, "id", account_id
+              else
+                account
+              end
+    HTTPoison.post!(System.get_env("INTERNAL_API") <> "/data/account/update", Poison.encode!(account)).body
+  end
+
   def finish_login(conn, _params) do
     user = conn |> fetch_session |> get_session("user")
-    # TODO: Don't pass back `email` here
+    update_account user
+    # Don't pass back `email` here
     {_, user_actual} = Map.pop user, "email"
     data = %{
       "type" => "login",
