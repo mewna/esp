@@ -69,7 +69,7 @@ defmodule ESPWeb.AuthController do
               else
                 account
               end
-    HTTPoison.post!(System.get_env("INTERNAL_API") <> "/data/account/update", Poison.encode!(account)).body
+    HTTPoison.post!(System.get_env("INTERNAL_API") <> "/data/account/update/oauth", Poison.encode!(account)).body
   end
 
   def finish_login(conn, _params) do
@@ -80,7 +80,8 @@ defmodule ESPWeb.AuthController do
     data = %{
       "type" => "login",
       "user" => user_actual,
-      "key" => ESP.Key.get_new_key(user["id"])
+      "key" => ESP.Key.get_new_key(user["id"]),
+      "profile" => HTTPoison.get!(System.get_env("INTERNAL_API") <> "/data/account/links/discord/" <> user_actual["id"]).body
     }
 
     conn

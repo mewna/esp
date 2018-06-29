@@ -103,28 +103,32 @@ defmodule ESPWeb.ApiController do
     conn |> text(data)
   end
 
-  # Players
+  # Accounts
 
-  def player_fetch(conn, params) do
+  def account_get_profile(conn, params) do
     id = params["id"]
-    res = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/data/player/#{id}").body
+    res = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/data/account/#{id}/profile").body
     conn |> json(res)
   end
 
-  def player_update(conn, params) do
+  def account_update_profile(conn, params) do
     key = conn |> get_req_header("authorization") |> hd
     {valid, id} = ESP.Key.check_key_valid key
 
     if valid do
       data = Map.merge %{}, params
-      {id, data} = Map.pop data, "id"
-      {_, data}  = Map.pop data, "type"
 
-      res = HTTPoison.post!(System.get_env("INTERNAL_API") <> "/data/player/#{id}", Poison.encode!(data)).body
+      res = HTTPoison.post!(System.get_env("INTERNAL_API") <> "/data/account/update", Poison.encode!(data)).body
       conn |> json(res)
     else
       conn |> json(%{})
     end
+  end
+
+  def account_links_discord_id(conn, params) do
+    id = params["id"]
+    data = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/data/account/links/discord/" <> id).body
+    conn |> text("\"" <> data <> "\"")
   end
 
   # Heartbeat
