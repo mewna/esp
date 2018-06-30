@@ -38,6 +38,7 @@ defmodule ESPWeb.Router do
           scope "/:id" do
             get  "/profile", ApiController, :account_get_profile
             post "/update",  ApiController, :account_update_profile
+            get  "/posts",   ApiController, :account_get_posts
           end
           scope "/links" do
             get "/discord/:id", ApiController, :account_links_discord_id

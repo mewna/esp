@@ -131,6 +131,12 @@ defmodule ESPWeb.ApiController do
     conn |> text("\"" <> data <> "\"")
   end
 
+  def account_get_posts(conn, params) do
+    id = params["id"]
+    res = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/data/account/#{id}/posts").body
+    conn |> text(res)
+  end
+
   # Heartbeat
 
   def heartbeat(conn, _params) do
