@@ -54,6 +54,14 @@ defmodule ESPWeb.Router do
           get "/lookup/name/:name", ApiController, :get_twitch_user_by_name
           get "/lookup/id/:id",     ApiController, :get_twitch_user_by_id
         end
+
+        scope "/store" do
+          get "/manifest", ApiController, :store_get_manifest
+          scope "/checkout" do
+            post "/start",   ApiController, :store_checkout_start
+            get  "/confirm", ApiController, :store_checkout_confirm
+          end
+        end
       end
 
       scope "/connect" do

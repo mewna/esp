@@ -137,6 +137,43 @@ defmodule ESPWeb.ApiController do
     conn |> text(res)
   end
 
+  # Store
+
+  def store_get_manifest(conn, _params) do
+    res = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/data/store/manifest").body
+    conn |> text(res)
+  end
+
+  def store_checkout_start(conn, params) do
+    data = %{
+      "userId" => params["userId"],
+      "sku"    => params["sku"],
+    }
+    res = HTTPoison.post!(System.get_env("INTERNAL_API") <> "/data/store/checkout/start", Poison.encode!(data)).body
+    conn |> text(res)
+  end
+
+  def store_checkout_confirm(conn, params) do
+    internal_data = %{
+      "userId"    => params["userId"],
+      "paymentId" => params["paymentId"],
+      "payerId"   => params["PayerID"],
+    }
+    res = HTTPoison.post!(System.get_env("INTERNAL_API") <> "/data/store/checkout/confirm", Poison.encode!(internal_data)).body
+    Logger.info "Got payment: #{inspect res, pretty: true}"
+    data = %{
+      "finished" => true,
+      "mode"     => "store",
+    }
+    conn
+    |> html("""
+        <script>
+        window.opener.postMessage(#{Poison.encode!(data)}, "*");
+        self.close();
+        </script>
+        """)
+  end
+
   # Heartbeat
 
   def heartbeat(conn, _params) do
