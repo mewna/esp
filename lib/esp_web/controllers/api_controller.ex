@@ -29,6 +29,16 @@ defmodule ESPWeb.ApiController do
     conn |> json(data)
   end
 
+  def cache_guild_exists(conn, params) do
+    id = params["id"]
+    data = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/cache/guild/#{id}").body
+    # lol
+    case data do
+      "{}" -> conn |> json(%{"exists" => false})
+      _   -> conn |> json(%{"exists" => true})
+    end
+  end
+
   # Config
 
   defp key_owns_guild(key, guild_id) do

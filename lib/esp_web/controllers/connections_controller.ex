@@ -37,8 +37,7 @@ defmodule ESPWeb.ConnectionsController do
     guild = params["guild"]
     channel = params["channel"]
 
-    redirect_url =
-      URI.encode_www_form("#{System.get_env("DOMAIN")}/api/v1/connect/discord/webhooks/finish")
+    redirect_url = URI.encode_www_form("#{System.get_env("DOMAIN")}/api/v1/connect/discord/webhooks/finish")
 
     conn
     |> redirect(
@@ -108,6 +107,46 @@ defmodule ESPWeb.ConnectionsController do
     # Tell the client that we're good and close the popup
     data = %{
       "hook_created" => true
+    }
+    conn
+    |> html("""
+            <script>
+            window.opener.postMessage(#{Poison.encode!(data)}, "*");
+            self.close();
+            </script>
+            """)
+  end
+
+  def discord_bot_add_start(conn, params) do
+    # https://discordapp.com/oauth2/authorize
+    #   ?scope=bot
+    #   &response_type=code
+    #   &redirect_uri=https%3A%2F%2Fmee6.xyz%2Fguild-oauth
+    #   &permissions=66321471
+    #   &client_id=159985415099514880
+    #   &guild_id=128316392909832192
+    guild_id = params["guild"]
+    redirect_url = URI.encode_www_form("#{System.get_env("DOMAIN")}/api/v1/connect/discord/bot/add/finish")
+    conn |> redirect(
+      external: "https://discordapp.com/oauth2/authorize?"
+          <> "scope=bot"
+          <> "&response_type=code"
+          <> "&redirect_uri=#{redirect_url}"
+          <> "&permissions=8"
+          <> "&guild_id=#{guild_id}"
+          <> "&client_id=#{System.get_env("DISCORD_CLIENT_ID")}"
+    )
+  end
+
+  def discord_bot_add_finish(conn, params) do
+    # ugly hack, wait to ensure that the cache actually processes it
+    # TODO: is 250ms enough??
+    Process.sleep 250
+
+    # Tell the client that we're good and close the popup
+    data = %{
+      "bot_added" => true,
+      "guild_id" => params["guild_id"],
     }
     conn
     |> html("""

@@ -15,6 +15,7 @@ defmodule ESPWeb.Router do
 
         get "/guild/:id/channels", ApiController, :cache_guild_channels
         get "/guild/:id/roles",    ApiController, :cache_guild_roles
+        get "/guild/:id/exists",   ApiController, :cache_guild_exists
       end
 
       scope "/metadata" do
@@ -66,6 +67,10 @@ defmodule ESPWeb.Router do
 
       scope "/connect" do
         scope "/discord" do
+          scope "/bot" do
+            get "/add/start",  ConnectionsController, :discord_bot_add_start
+            get "/add/finish", ConnectionsController, :discord_bot_add_finish
+          end
           scope "/webhooks" do
             get "/check",  ConnectionsController, :discord_webhook_check
             get "/start",  ConnectionsController, :discord_webhook_start
