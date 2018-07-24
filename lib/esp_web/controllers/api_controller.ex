@@ -97,7 +97,7 @@ defmodule ESPWeb.ApiController do
     {state, response} = key_owns_guild key, guild
     case state do
       :ok ->
-        response = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/data/guild/#{guild}/webhooks").body
+        response = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/data/guild/#{guild}/webhooks", [], [recv_timeout: 20_000, timeout: 20_000]).body
         conn |> json(response)
       :error ->
         conn |> json(%{"error" => response})
@@ -107,7 +107,7 @@ defmodule ESPWeb.ApiController do
   # Other guild data
 
   def guild_levels_fetch(conn, params) do
-    data = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/data/guild/#{params["id"]}/levels").body
+    data = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/data/guild/#{params["id"]}/levels", [], [recv_timeout: 20_000, timeout: 20_000]).body
     # doing |> json(data) json-encodes a json string giving wrong results
     # idk why this one is special but others aren't :I
     conn |> text(data)
@@ -117,7 +117,7 @@ defmodule ESPWeb.ApiController do
 
   def account_get_profile(conn, params) do
     id = params["id"]
-    res = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/data/account/#{id}/profile").body
+    res = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/data/account/#{id}/profile", [], [recv_timeout: 20_000, timeout: 20_000]).body
     conn |> json(res)
   end
 
@@ -137,20 +137,20 @@ defmodule ESPWeb.ApiController do
 
   def account_links_discord_id(conn, params) do
     id = params["id"]
-    data = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/data/account/links/discord/" <> id).body
+    data = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/data/account/links/discord/" <> id, [], [recv_timeout: 20_000, timeout: 20_000]).body
     conn |> text("\"" <> data <> "\"")
   end
 
   def account_get_posts(conn, params) do
     id = params["id"]
-    res = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/data/account/#{id}/posts").body
+    res = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/data/account/#{id}/posts", [], [recv_timeout: 20_000, timeout: 20_000]).body
     conn |> text(res)
   end
 
   # Store
 
   def store_get_manifest(conn, _params) do
-    res = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/data/store/manifest").body
+    res = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/data/store/manifest", [], [recv_timeout: 20_000, timeout: 20_000]).body
     conn |> text(res)
   end
 
@@ -199,12 +199,12 @@ defmodule ESPWeb.ApiController do
   # Metadata
 
   def get_plugins(conn, _params) do
-    data = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/data/plugins/metadata").body |> Poison.decode!
+    data = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/data/plugins/metadata", [], [recv_timeout: 20_000, timeout: 20_000]).body |> Poison.decode!
     conn |> json(data)
   end
 
   def get_commands(conn, _params) do
-    data = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/data/commands/metadata").body |> Poison.decode!
+    data = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/data/commands/metadata", [], [recv_timeout: 20_000, timeout: 20_000]).body |> Poison.decode!
     conn |> json(data)
   end
 
