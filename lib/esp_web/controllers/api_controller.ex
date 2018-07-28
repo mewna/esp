@@ -117,8 +117,10 @@ defmodule ESPWeb.ApiController do
 
   def account_get_profile(conn, params) do
     id = params["id"]
-    res = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/data/account/#{id}/profile", [], [recv_timeout: 20_000, timeout: 20_000]).body
-    conn |> json(res)
+    {_, re} = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/data/account/#{id}/profile", [], [recv_timeout: 20_000, timeout: 20_000]).body
+              |> Poison.decode!
+              |> Map.pop("email")
+    conn |> json(re)
   end
 
   def account_update_profile(conn, params) do
