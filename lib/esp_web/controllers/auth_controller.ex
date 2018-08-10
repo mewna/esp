@@ -63,7 +63,7 @@ defmodule ESPWeb.AuthController do
       "discordAccountId" => user["id"],
       "avatar" => get_avatar_cdn_url(user),
     }
-    account_id = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/data/account/links/discord/" <> user["id"]).body
+    account_id = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/data/account/links/discord/" <> account["discordAccountId"]).body
     account = unless is_nil(account_id) or account_id == "null" do
                 Map.put account, "id", account_id
               else

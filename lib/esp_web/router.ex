@@ -6,6 +6,25 @@ defmodule ESPWeb.Router do
     plug CORSPlug #, [origin: System.get_env("BASE_URL")]
   end
 
+  # We don't want to let people just flood the API with requests, but we also
+  # know that some API routes need to have different ratelimits than others. To
+  # deal with this, we define 3 basic ratelimit types - nice, medium, and
+  # aggressive. They're exactly what they sound like - nice allows a good
+  # number of requests, medium less so, then aggressive does heavy restrictions
+  # on requests.
+
+  pipeline :ratelimit_nice do
+    #
+  end
+
+  pipeline :ratelimit_medium do
+    #
+  end
+
+  pipeline :ratelimit_aggressive do
+    #
+  end
+
   scope "/api", ESPWeb do
     pipe_through :api
 
