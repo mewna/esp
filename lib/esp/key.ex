@@ -153,15 +153,7 @@ defmodule ESP.Key do
         Logger.info "== Refreshed token for #{id}"
         res
       else
-        Logger.info ""
-        Logger.info ""
-        Logger.info ""
-        Logger.info ""
         Logger.info "== Not refreshing token for #{id} - expires #{token.expires_at}, now #{now}, check #{token.expires_at < now}"
-        Logger.info ""
-        Logger.info ""
-        Logger.info ""
-        Logger.info ""
         token
       end
     else
