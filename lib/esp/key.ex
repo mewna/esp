@@ -40,6 +40,7 @@ defmodule ESP.Key do
     key = keygen id
     session_id = get_session_id key
     Redis.q ["HSET", @key_store <> ":" <> id, session_id, key]
+    Logger.info "Generated new key for #{id}"
     key
   end
 
@@ -124,13 +125,55 @@ defmodule ESP.Key do
   ################
 
   def refresh_token(id) when is_binary(id) do
-    # TODO
+    token = get_token id
+    if(token) do
+      now = :os.system_time :second
+      if token.expires_at < now do
+        data = HTTPoison.post!(@token_url, URI.encode_query(%{
+          "client_id" => System.get_env("DISCORD_CLIENT_ID"),
+          "client_secret" => System.get_env("DISCORD_CLIENT_SECRET"),
+          "grant_type" => "refresh_token",
+          "refresh_token" => token.refresh_token,
+          "redirect_uri" => System.get_env("DOMAIN") <> "/auth/discord/callback",
+          "scope" => "identify guilds email connections",
+        }), [{"Content-Type", "application/x-www-form-urlencoded"}]).body
+
+        tmp = Poison.decode!(data)
+        res = %Ueberauth.Auth.Credentials{
+          expires: nil,
+          expires_at: :os.system_time(:second) + tmp["expires_in"],
+          other: [],
+          refresh_token: tmp["refresh_token"],
+          scopes: String.split(tmp["scope"]),
+          secret: nil,
+          token: tmp["access_token"],
+          token_type: tmp["token_type"],
+        }
+        set_token id, res
+        Logger.info "== Refreshed token for #{id}"
+        res
+      else
+        Logger.info ""
+        Logger.info ""
+        Logger.info ""
+        Logger.info ""
+        Logger.info "== Not refreshing token for #{id} - expires #{token.expires_at}, now #{now}, check #{token.expires_at < now}"
+        Logger.info ""
+        Logger.info ""
+        Logger.info ""
+        Logger.info ""
+        token
+      end
+    else
+      Logger.info "== Not refreshing token for #{id} - no token!"
+      nil
+    end
   end
 
   def refresh_data(id) when is_binary(id) do
     token = get_token id
     unless is_nil token do
-      # TODO: Check expiry
+      token = refresh_token id
       {status, user} = get_user_from_api id, token
       {_, guilds} = get_guilds_from_api id, token
       case status do
@@ -181,7 +224,7 @@ defmodule ESP.Key do
         set_guilds id, guild_data
         {:ok, %{"guilds" => guild_data}}
       _ ->
-       {:error, :invalid_token}
+        {:error, :invalid_token}
     end
   end
 
