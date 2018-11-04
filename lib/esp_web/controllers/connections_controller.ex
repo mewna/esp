@@ -43,7 +43,7 @@ defmodule ESPWeb.ConnectionsController do
     |> redirect(
       external:
         "https://discordapp.com/oauth2/authorize?response_type=code" <>
-          "&client_id=#{System.get_env("DISCORD_CLIENT_ID")}" <>
+          "&client_id=#{System.get_env("DISCORD_WEBHOOK_CLIENT_ID")}" <>
           "&redirect_uri=#{redirect_url}" <>
           "&scope=webhook.incoming" <> "&guild_id=#{guild}" <> "&channel_id=#{channel}"
     )
@@ -54,8 +54,8 @@ defmodule ESPWeb.ConnectionsController do
       URI.encode_www_form("#{System.get_env("DOMAIN")}/api/v1/connect/discord/webhooks/finish")
 
     data = [
-      "client_id=#{System.get_env("DISCORD_CLIENT_ID")}",
-      "client_secret=#{System.get_env("DISCORD_CLIENT_SECRET")}",
+      "client_id=#{System.get_env("DISCORD_WEBHOOK_CLIENT_ID")}",
+      "client_secret=#{System.get_env("DISCORD_WEBHOOK_CLIENT_SECRET")}",
       "grant_type=authorization_code",
       "code=#{params["code"]}",
       "redirect_uri=#{uri}",

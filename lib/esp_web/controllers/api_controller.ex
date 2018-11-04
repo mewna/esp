@@ -10,7 +10,6 @@ defmodule ESPWeb.ApiController do
         type = params["type"]
         id = params["id"]
         data = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/cache/#{type}/#{id}").body |> Poison.decode!
-        data = data |> Map.put("username", data["name"])
         conn |> json(data)
       false ->
         conn |> json(%{"error" => "bad cache type"})
@@ -99,6 +98,34 @@ defmodule ESPWeb.ApiController do
       :ok ->
         response = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/data/guild/#{guild}/webhooks", [], [recv_timeout: 20_000, timeout: 20_000]).body
         conn |> json(response)
+      :error ->
+        conn |> json(%{"error" => response})
+    end
+  end
+
+  def webhooks_fetch_one(conn, params) do
+    guild = params["guild"]
+    id = params["id"]
+    key = conn |> get_req_header("authorization") |> hd
+    {state, response} = key_owns_guild key, guild
+    case state do
+      :ok ->
+        response = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/data/guild/#{guild}/webhooks/#{id}", [], [recv_timeout: 20_000, timeout: 20_000]).body
+        conn |> json(response)
+      :error ->
+        conn |> json(%{"error" => response})
+    end
+  end
+
+  def webhooks_delete_one(conn, params) do
+    guild = params["guild"]
+    id = params["id"]
+    key = conn |> get_req_header("authorization") |> hd
+    {state, response} = key_owns_guild key, guild
+    case state do
+      :ok ->
+        _response = HTTPoison.delete!(System.get_env("INTERNAL_API") <> "/data/guild/#{guild}/webhooks/#{id}", [], [recv_timeout: 20_000, timeout: 20_000]).body
+        conn |> json(%{})
       :error ->
         conn |> json(%{"error" => response})
     end

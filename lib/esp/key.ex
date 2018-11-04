@@ -125,10 +125,14 @@ defmodule ESP.Key do
   ################
 
   def refresh_token(id) when is_binary(id) do
+    refresh_token id, false
+  end
+
+  def refresh_token(id, force) when is_binary(id) and is_boolean(force) do
     token = get_token id
     if(token) do
       now = :os.system_time :second
-      if token.expires_at < now do
+      if (token.expires_at < now) or force do
         data = HTTPoison.post!(@token_url, URI.encode_query(%{
           "client_id" => System.get_env("DISCORD_CLIENT_ID"),
           "client_secret" => System.get_env("DISCORD_CLIENT_SECRET"),
@@ -139,6 +143,7 @@ defmodule ESP.Key do
         }), [{"Content-Type", "application/x-www-form-urlencoded"}]).body
 
         tmp = Poison.decode!(data)
+        Logger.info "#{inspect tmp, pretty: true}"
         res = %Ueberauth.Auth.Credentials{
           expires: nil,
           expires_at: :os.system_time(:second) + tmp["expires_in"],
@@ -195,7 +200,12 @@ defmodule ESP.Key do
         {:ok, %{"user" => user_data}}
       {status, data} ->
         Logger.warn "Got response: {#{inspect status, pretty: true}, #{inspect data, pretty: true}}"
-        {:error, :invalid_token}
+        if data.status_code == 401 do
+          token = refresh_token id, true
+          get_user_from_api id, token
+        else
+          {:error, :invalid_token}
+        end
     end
   end
 
@@ -215,8 +225,14 @@ defmodule ESP.Key do
         guild_data = Poison.decode! guild_res.body
         set_guilds id, guild_data
         {:ok, %{"guilds" => guild_data}}
-      _ ->
-        {:error, :invalid_token}
+      {status, data} ->
+        Logger.warn "Got response: {#{inspect status, pretty: true}, #{inspect data, pretty: true}}"
+        if data.status_code == 401 do
+          token = refresh_token id, true
+          get_user_from_api id, token
+        else
+          {:error, :invalid_token}
+        end
     end
   end
 
