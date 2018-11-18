@@ -140,6 +140,18 @@ defmodule ESPWeb.ApiController do
     conn |> text(data)
   end
 
+  def user_manages_guild(conn, params) do
+    id = params["id"]
+    key = conn |> get_req_header("authorization") |> hd
+    {status, response} = key_owns_guild key, id
+    case status do
+      :ok ->
+        conn |> json(%{"manages" => true})
+      :error ->
+        conn |> json(%{"manages" => false})
+    end
+  end
+
   # Accounts
 
   def account_get_profile(conn, params) do

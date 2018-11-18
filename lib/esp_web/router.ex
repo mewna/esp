@@ -50,10 +50,11 @@ defmodule ESPWeb.Router do
         scope "/guild" do
           get    "/:id/webhooks",        ApiController, :webhooks_fetch
           # get    "/:guild/webhooks/:id", ApiController, :webhooks_fetch_one
-          delete "/:guild/webhooks/:id",  ApiController, :webhooks_delete_one
+          delete "/:guild/webhooks/:id", ApiController, :webhooks_delete_one
           get    "/:id/levels",          ApiController, :guild_levels_fetch
           post   "/:id/config/:type",    ApiController, :config_guild_update
           get    "/:id/config/:type",    ApiController, :config_guild_fetch
+          get    "/:id/manages",         ApiController, :user_manages_guild
         end
 
         scope "/account" do
