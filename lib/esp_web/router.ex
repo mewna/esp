@@ -14,15 +14,15 @@ defmodule ESPWeb.Router do
   # on requests.
 
   pipeline :ratelimit_nice do
-    #
+    # TODO
   end
 
   pipeline :ratelimit_medium do
-    #
+    # TODO
   end
 
   pipeline :ratelimit_aggressive do
-    #
+    # TODO
   end
 
   scope "/api", ESPWeb do
@@ -97,6 +97,21 @@ defmodule ESPWeb.Router do
             get "/check",  ConnectionsController, :discord_webhook_check
             get "/start",  ConnectionsController, :discord_webhook_start
             get "/finish", ConnectionsController, :discord_webhook_finish
+          end
+        end
+      end
+
+      scope "/blog" do
+        scope "/server" do
+          scope "/:id" do
+            scope "/post" do
+              get    "/:post", BlogController, :server_get_one_post
+              put    "/:post", BlogController, :server_edit_one_post
+              delete "/:post", BlogController, :server_delete_one_post
+            end
+            post "/post",      BlogController, :server_post_create
+            get  "/posts",     BlogController, :server_get_posts
+            get  "/posts/all", BlogController, :server_get_all_posts
           end
         end
       end

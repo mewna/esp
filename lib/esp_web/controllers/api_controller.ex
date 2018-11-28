@@ -43,8 +43,6 @@ defmodule ESPWeb.ApiController do
   defp key_owns_guild(key, guild_id) do
     {valid, id} = ESP.Key.check_key_valid key
     if valid do
-      # Get the user
-      #user = ESP.Key.get_user id
       # Ensure the key is valid for this guild
       guilds = ESP.Key.get_guilds id
       if guilds |> Enum.any?(fn(x) -> x["id"] == guild_id end) do
