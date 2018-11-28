@@ -50,8 +50,9 @@ defmodule ESPWeb.BlogController do
     {state, response} = key_owns_guild conn, guild
     case state do
       :ok ->
-        response = HTTPoison.post!(System.get_env("INTERNAL_API") <> "/data/server/#{guild}/post", Poison.encode!(data)).body
-        conn |> json(response)
+        # response = HTTPoison.post!(System.get_env("INTERNAL_API") <> "/data/server/#{guild}/post", Poison.encode!(data)).body
+        # conn |> json(response)
+        conn |> json(%{})
       :error ->
         conn |> json(%{"error" => response})
     end
