@@ -109,9 +109,10 @@ defmodule ESPWeb.Router do
               put    "/:post", BlogController, :server_edit_one_post
               delete "/:post", BlogController, :server_delete_one_post
             end
-            post "/post",      BlogController, :server_post_create
-            get  "/posts",     BlogController, :server_get_posts
-            get  "/posts/all", BlogController, :server_get_all_posts
+            post "/post",             BlogController, :server_post_create
+            get  "/posts",            BlogController, :server_get_posts
+            get  "/posts/all",        BlogController, :server_get_all_posts
+            get  "/posts/all/titles", BlogController, :server_get_all_posts_titles
           end
         end
       end

@@ -100,10 +100,23 @@ defmodule ESPWeb.BlogController do
   end
 
   def server_get_posts(conn, params) do
-    #
+    guild = params["id"]
+    post = params["post"]
+    response = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/data/server/#{guild}/posts").body
+    conn |> json(response)
   end
 
   def server_get_all_posts(conn, params) do
-    #
+    guild = params["id"]
+    post = params["post"]
+    response = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/data/server/#{guild}/posts/all").body
+    conn |> json(response)
+  end
+
+  def server_get_all_posts_titles(conn, params) do
+    guild = params["id"]
+    post = params["post"]
+    response = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/data/server/#{guild}/posts/all/titles").body
+    conn |> json(response)
   end
 end
