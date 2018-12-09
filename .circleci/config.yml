@@ -4,12 +4,6 @@ jobs:
     machine: true
     steps:
     - checkout
-    # start proprietary DB using private Docker image
-    # with credentials stored in the UI
     - run: docker login -u $DOCKER_USER -p $DOCKER_PASS
-
-    # build the application image
     - run: docker build -t mewna/esp:$CIRCLE_BRANCH-$CIRCLE_BUILD_NUM .
-
-    # deploy the image
     - run: docker push mewna/esp:$CIRCLE_BRANCH-$CIRCLE_BUILD_NUM
