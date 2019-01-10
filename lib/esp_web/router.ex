@@ -121,6 +121,12 @@ defmodule ESPWeb.Router do
         post "/logout", ApiController, :logout
       end
 
+      scope "/external" do
+        scope "/votes" do
+          post "/dbl", ConnectionsController, :dbl_incoming_webhook
+        end
+      end
+
       get "/heartbeat", ApiController, :heartbeat
     end
 

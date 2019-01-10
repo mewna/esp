@@ -156,4 +156,19 @@ defmodule ESPWeb.ConnectionsController do
             </script>
             """)
   end
+
+  def dbl_incoming_webhook(conn, params) do
+    auth = System.get_env "DBL_AUTH"
+    incoming = conn |> get_req_header("authorization") |> hd
+    if auth == incoming do
+      data = %{
+        "bot" => params["bot"],
+        "user" => params["user"],
+        "type" => params["type"],
+        "isWeekend" => params["isWeekend"],
+      }
+      HTTPoison.post!(System.get_env("INTERNAL_API") <> "/data/votes/dbl", Poison.encode!(data))
+    end
+    conn |> json(%{})
+  end
 end
