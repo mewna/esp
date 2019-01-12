@@ -168,6 +168,8 @@ defmodule ESPWeb.ConnectionsController do
         "isWeekend" => params["isWeekend"],
       }
       HTTPoison.post!(System.get_env("INTERNAL_API") <> "/data/votes/dbl", Poison.encode!(data))
+    else
+      Logger.warn "Got potentially fake DBL vote with password: #{incoming} != #{auth}"
     end
     conn |> json(%{})
   end
