@@ -42,7 +42,7 @@ defmodule ESPWeb.ApiController do
 
   def import_levels(conn, params) do
     guild = params["id"]
-    mode = params["type"]
+    type = params["type"]
 
     key = conn |> get_req_header("authorization") |> hd
 
