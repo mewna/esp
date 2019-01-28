@@ -49,7 +49,7 @@ defmodule ESPWeb.ApiController do
     {state, response} = key_owns_guild key, guild
     case state do
       :ok ->
-        data = HTTPoison.post!(System.get_env("INTERNAL_API") <> "/data/levels/import/#{guild}/#{type}").body
+        HTTPoison.post!(System.get_env("INTERNAL_API") <> "/data/levels/import/#{guild}/#{type}", Poison.encode!(%{}))
         conn |> json(%{})
       :error ->
         conn |> json(%{"error" => response})
