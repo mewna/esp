@@ -38,6 +38,24 @@ defmodule ESPWeb.ApiController do
     end
   end
 
+  # Imports
+
+  def import_levels(conn, params) do
+    guild = params["id"]
+    mode = params["type"]
+
+    key = conn |> get_req_header("authorization") |> hd
+
+    {state, response} = key_owns_guild key, guild
+    case state do
+      :ok ->
+        data = HTTPoison.post!(System.get_env("INTERNAL_API") <> "/data/levels/import/#{guild}/#{type}").body
+        conn |> json(%{})
+      :error ->
+        conn |> json(%{"error" => response})
+    end
+  end
+
   # Config
 
   defp key_owns_guild(key, guild_id) do
