@@ -248,6 +248,7 @@ defmodule ESPWeb.ApiController do
     if valid do
       conn |> json(%{"check" => id})
     else
+      Logger.info "Got invalid key for id #{id}: #{key}"
       conn |> json(%{"check" => nil})
     end
   end
