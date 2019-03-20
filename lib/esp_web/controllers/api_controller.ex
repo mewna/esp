@@ -246,9 +246,10 @@ defmodule ESPWeb.ApiController do
     key = conn |> get_req_header("authorization") |> hd
     {valid, id} = ESP.Key.check_key_valid key
     if valid do
+      Logger.info "Got valid key for id {#id}: #{key}"
       conn |> json(%{"check" => id})
     else
-      Logger.info "Got invalid key for id #{id}: #{key}"
+      Logger.warn "Got invalid key for id #{id}: #{key}"
       conn |> json(%{"check" => nil})
     end
   end
