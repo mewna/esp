@@ -85,12 +85,15 @@ defmodule ESP.Key do
       # want this to be constant time. I don't remember how == is implemented in Erlang / Elixir,
       # so this is just for my sanity.
       valid = SecureCompare.compare calculated_hmac, hmac
-      {:ok, stored} = Redis.q ["HGET", @key_store <> ":" <> id, session_id]
-      if stored == key do
-        {valid, id}
-      else
-        {false, id}
-      end
+      {valid, id}
+      
+      # {:ok, stored} = Redis.q ["HGET", @key_store <> ":" <> id, session_id]
+      
+      #if stored == key do
+      #  {valid, id}
+      #else
+      #  {false, id}
+      #end
     end
   end
 
