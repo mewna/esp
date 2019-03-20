@@ -245,8 +245,8 @@ defmodule ESPWeb.ApiController do
   def heartbeat(conn, _params) do
     key = conn |> get_req_header("authorization") |> hd
     {valid, id} = ESP.Key.check_key_valid key
-    if valid do
-      Logger.info "Got valid key for id {#id}: #{key}"
+    if valid and id do
+      Logger.info "Got valid key for id #{id}: #{key}"
       conn |> json(%{"check" => id})
     else
       Logger.warn "Got invalid key for id #{id}: #{key}"
