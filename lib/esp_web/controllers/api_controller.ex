@@ -245,6 +245,7 @@ defmodule ESPWeb.ApiController do
   def heartbeat(conn, _params) do
     key = conn |> get_req_header("authorization") |> hd
     {valid, id} = ESP.Key.check_key_valid key
+    Logger.info "Validating key for id #{id}: #{key}"
     if valid and id do
       Logger.info "Got valid key for id #{id}: #{key}"
       conn |> json(%{"check" => id})
@@ -292,7 +293,7 @@ defmodule ESPWeb.ApiController do
   # Fucking CORS man
 
   def options(conn, _params) do
-    conn |> json(%{})
+    conn |> text("")
   end
 
   # Auth
