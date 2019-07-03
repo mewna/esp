@@ -150,7 +150,7 @@ defmodule ESPWeb.ApiController do
   # Other guild data
 
   def guild_levels_fetch(conn, params) do
-    data = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/data/guild/#{params["id"]}/levels", [], [recv_timeout: 30_000, timeout: 30_000]).body
+    data = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/data/guild/#{params["id"]}/levels", [], [recv_timeout: 60_000, timeout: 60_000]).body
     # doing |> json(data) json-encodes a json string giving wrong results
     # idk why this one is special but others aren't :I
     conn |> text(data)
