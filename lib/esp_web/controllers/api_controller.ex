@@ -9,7 +9,7 @@ defmodule ESPWeb.ApiController do
       params["type"] in ["user", "guild", "role", "channel"] ->
         type = params["type"]
         id = params["id"]
-        data = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/cache/#{type}/#{id}").body |> Poison.decode!
+        data = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/cache/#{type}/#{id}", [], [recv_timeout: 20_000, timeout: 20_000]).body |> Poison.decode!
         conn |> json(data)
       false ->
         conn |> json(%{"error" => "bad cache type"})
@@ -18,19 +18,19 @@ defmodule ESPWeb.ApiController do
 
   def cache_guild_channels(conn, params) do
     id = params["id"]
-    data = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/cache/guild/#{id}/channels").body |> Poison.decode!
+    data = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/cache/guild/#{id}/channels", [], [recv_timeout: 20_000, timeout: 20_000]).body |> Poison.decode!
     conn |> json(data)
   end
 
   def cache_guild_roles(conn, params) do
     id = params["id"]
-    data = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/cache/guild/#{id}/roles").body |> Poison.decode!
+    data = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/cache/guild/#{id}/roles", [], [recv_timeout: 20_000, timeout: 20_000]).body |> Poison.decode!
     conn |> json(data)
   end
 
   def cache_guild_exists(conn, params) do
     id = params["id"]
-    data = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/cache/guild/#{id}").body
+    data = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/cache/guild/#{id}", [], [recv_timeout: 20_000, timeout: 20_000]).body
     # lol
     case data do
       "{}" -> conn |> json(%{"exists" => false})
@@ -49,7 +49,7 @@ defmodule ESPWeb.ApiController do
     {state, response} = key_owns_guild key, guild
     case state do
       :ok ->
-        HTTPoison.post!(System.get_env("INTERNAL_API") <> "/data/levels/import/#{guild}/#{type}", Poison.encode!(%{}))
+        HTTPoison.post!(System.get_env("INTERNAL_API") <> "/data/levels/import/#{guild}/#{type}", Poison.encode!(%{}), [], [recv_timeout: 20_000, timeout: 20_000])
         conn |> json(%{})
       :error ->
         conn |> json(%{"error" => response})
@@ -82,7 +82,7 @@ defmodule ESPWeb.ApiController do
     {state, response} = key_owns_guild key, guild
     case state do
       :ok ->
-        data = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/data/guild/#{guild}/config/#{type}").body
+        data = HTTPoison.get!(System.get_env("INTERNAL_API") <> "/data/guild/#{guild}/config/#{type}", [], [recv_timeout: 20_000, timeout: 20_000]).body
         conn |> json(data)
       :error ->
         conn |> json(%{"error" => response})
@@ -99,7 +99,7 @@ defmodule ESPWeb.ApiController do
     {state, response} = key_owns_guild key, guild
     case state do
       :ok ->
-        response = HTTPoison.post!(System.get_env("INTERNAL_API") <> "/data/guild/#{guild}/config/#{type}", Poison.encode!(data)).body
+        response = HTTPoison.post!(System.get_env("INTERNAL_API") <> "/data/guild/#{guild}/config/#{type}", Poison.encode!(data), [], [recv_timeout: 20_000, timeout: 20_000]).body
         conn |> json(response)
       :error ->
         conn |> json(%{"error" => response})
